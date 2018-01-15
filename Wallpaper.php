@@ -131,6 +131,31 @@ class Wallpaper {
             print("Invalid json link...\n");
         }
     }
+
+    // creates a bash script to run and modify output format
+    // BUG of script, output format must be ok from the beginning
+    public function reformat_name_images() {
+        $output_name = "temp.sh";
+        if(false !== ($handle = fopen($output_name,"a+"))){
+            exec("file *",$output_array);
+            foreach($output_array as $file) {
+                $regex_file = preg_match("/(([A-Za-z]|[0-9])*)\.(jpg):\ *(JPEG|PNG)/",$file,$matches);
+                if(isset($matches[1]) && $matches[3] && isset($matches[4])) {
+                    if(!empty($matches[1]) && $matches[3] && !empty($matches[4])) {
+                        $filename = $matches[1];
+                        $original_format = $matches[3];
+                        $format = $matches[4];
+                        print(".");
+                        $str = "mv " . $filename . "." . $original_format . " " . $filename . "." . $format."\n";
+                        fwrite($handle,$str);
+                    }
+                }
+            }
+            fwrite($handle,"rm ".$output_name);
+            print("\n");
+            fclose($handle);
+        }
+    }
 }
 
 ?>

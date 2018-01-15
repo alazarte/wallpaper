@@ -18,8 +18,8 @@ function usage() {
         . "\t--set-json=link\n"
         . "\t\tSet json link to download images from\n"
         . "\t-r\n"
-        . "\t--run\n"
-        . "\t\tRuns the script...\n"
+        . "\t--download\n"
+        . "\t\tDownload all images...\n"
         . "\t-c\n"
         . "\t--count\n"
         . "\t\tCounts images not in history\n"
@@ -37,7 +37,7 @@ $params["force"] = false;
 $params["help"] = false;
 $params["download"] = false;
 $params["set-json"] = false;
-$params["run"] = false;
+$params["download"] = false;
 $params["count"] = false;
 
 // v : verbose
@@ -45,14 +45,14 @@ $params["count"] = false;
 // f : force
 // h : help
 // s : set-json link
-$shortopts = "vgfhs:rc";
+$shortopts = "vgfhs:dc";
 $longopts = array(
     "verbose",
     "get-urls",
     "force",
     "help",
     "set-json:",
-    "run",
+    "download",
     "count"
     );
 
@@ -70,8 +70,8 @@ if (isset($options["force"]) || isset($options["f"])) {
 if (isset($options["help"]) || isset($options["h"])) {
     $params["help"] = true;
 }
-if (isset($options["run"]) || isset($options["r"])) {
-    $params["run"] = true;
+if (isset($options["download"]) || isset($options["d"])) {
+    $params["download"] = true;
 }
 if (isset($options["count"]) || isset($options["c"])) {
     $params["count"] = true;
@@ -80,6 +80,8 @@ if (isset($options["set-json"])) {
     $params["set-json"] = $options["set-json"];
 } else if (isset($options["s"])) {
     $params["set-json"] = $options["s"];
+} else {
+    $params["set-json"] = "reddit.com/r/wallpapers.json";
 }
 
 if($params["help"]) {
@@ -93,8 +95,9 @@ if($params["help"]) {
             foreach($urls as $url) {
                 print($url."\n");
             }
-        } else if ($params["run"]) {
+        } else if ($params["download"]) {
             $wall->run($params["force"]);
+            $wall->reformat_name_images();
         } else if($params["count"]) {
             $count = $wall->count_new_images();
             if($count==0) print("No new images...\n");
