@@ -20,6 +20,9 @@ class Wallpaper {
     // out : urls that aren't already in history
     // avoid downloading same image
     public function check_urls_in_history($urls_array) {
+        if(! file_exists($this->history_filename)) {
+            return $urls_array;
+        }
         $handle = fopen($this->history_filename,'r');
         $history_array = explode(",",fgets($handle));
         $result_array = array();
@@ -85,16 +88,16 @@ class Wallpaper {
     // in : url containing an image
     // out : should be boolean if success downloading
     // downloads an image to a random name in local script path
-    public function download_image_from_url($url) {
+    public function download_image_from_url($download_path,$url) {
         $output_name = $this->generate_new_name();
         if($this->verbose_mode)
             print("Downloading from ".$url." as ".$output_name."...\n");
-        file_put_contents($output_name,file_get_contents($url));
+        file_put_contents($download_path.DIRECTORY_SEPARATOR.$output_name,file_get_contents($url));
     }
 
-    public function download_images_from_array($urls) {
+    public function download_images_from_array($download_path,$urls) {
         foreach($urls as $url) {
-            $this->download_image_from_url($url);
+            $this->download_image_from_url($download_path,$url);
         }
         $this->add_array_to_history($urls);
     }
@@ -121,12 +124,12 @@ class Wallpaper {
     }
 
     // uses methods of class to download images with the given url
-    public function run($force = false) {
+    public function run($config, $force = false) {
         if(! empty($this->json_url)){
             $urls = $this->get_array_from_url($this->json_url);
             if(!$force)
                 $urls = $this->check_urls_in_history($urls);
-            $this->download_images_from_array($urls);
+            $this->download_images_from_array($config->paths->downloads,$urls);
         } else {
             print("Invalid json link...\n");
         }
@@ -134,10 +137,10 @@ class Wallpaper {
 
     // creates a bash script to run and modify output format
     // BUG of script, output format must be ok from the beginning
-    public function reformat_name_images() {
+    public function reformat_name_images($config) {
         $output_name = "temp.sh";
         if(false !== ($handle = fopen($output_name,"a+"))){
-            exec("file *",$output_array);
+            exec("file ".$config->paths->downloads."/*",$output_array);
             foreach($output_array as $file) {
                 $regex_file = preg_match("/(([A-Za-z]|[0-9])*)\.(jpg):\ *(JPEG|PNG)/",$file,$matches);
                 if(isset($matches[1]) && $matches[3] && isset($matches[4])) {

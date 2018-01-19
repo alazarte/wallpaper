@@ -1,4 +1,5 @@
 <?php
+
 require('./Wallpaper.php');
 
 function usage() {
@@ -28,6 +29,18 @@ function usage() {
         . "\t\tPrints this help message\n"
     );
 }
+
+function check_config($config) {
+    if(!is_dir($config->paths->downloads)) {
+        mkdir($config->paths->downloads);
+    }
+}
+
+$config = (object) array(
+    "paths" => (object) array(
+        "downloads" => "./downloads"
+    )
+);
 
 $wall = new Wallpaper();
 
@@ -96,8 +109,9 @@ if($params["help"]) {
                 print($url."\n");
             }
         } else if ($params["download"]) {
-            $wall->run($params["force"]);
-            $wall->reformat_name_images();
+            check_config($config);
+            $wall->run($config,$params["force"]);
+            $wall->reformat_name_images($config);
         } else if($params["count"]) {
             $count = $wall->count_new_images();
             if($count==0) print("No new images...\n");
