@@ -145,7 +145,7 @@ class Wallpaper {
                 $regex_file = preg_match("/(([A-Za-z]|[0-9])*)\.(jpg):\ *(JPEG|PNG)/",$file,$matches);
                 if(isset($matches[1]) && $matches[3] && isset($matches[4])) {
                     if(!empty($matches[1]) && $matches[3] && !empty($matches[4])) {
-                        $filename = $matches[1];
+                        $filename = $config->paths->downloads . DIRECTORY_SEPARATOR . $matches[1];
                         $original_format = $matches[3];
                         $format = $matches[4];
                         print(".");
