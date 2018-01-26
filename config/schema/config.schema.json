@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "wallpaper",
+    "description": "General configuration for wallpaper",
+    "type": "object",
+    "properties":
+    {
+        "historyFilePath":
+        {
+            "description": "Where the url history will be saved",
+            "type": "string"
+        },
+        "defaultUrl":
+        {
+            "description": "From where to download if no url is specified",
+            "type": "string"
+        },
+        "downloadFolder":
+        {
+            "description": "Path where the downloaded images will be stored",
+            "type": "string"
+        },
+        "required": ["historyFilePath","defaultUrl"]
+    }
+}
