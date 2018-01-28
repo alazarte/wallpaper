@@ -60,7 +60,7 @@ class Wallpaper
     // in : array of urls to add to history
     // out : nothing
     // adds each url in array to history for avoiding re-download same img
-    private function addArrayToHistory($url_array) 
+    protected function addArrayToHistory($url_array) 
     {
         $handle = fopen($this->config->historyFilepath,'a+');
         foreach($url_array as $url) {
@@ -79,7 +79,7 @@ class Wallpaper
     // in : url to json file
     // out : array with urls of images found
     // try to scan page to find images, is best to specify limit in the url
-    public function getImageLinksFromUrl() 
+    protected function getImageLinksFromUrl() 
     {
         if(empty($this->customJsonUrl)) {
             $url = $this->config->defaultUrl;
@@ -100,7 +100,7 @@ class Wallpaper
     // in : string to url
     // out : boolean if valid url
     // validation consist in trying to check if it is an url to an image
-    private function checkValidUrl($url) 
+    protected function checkValidUrl($url) 
     {
         return (preg_match('/.*\.(jpg|jpeg|png)$/',$url)===1);
     }
@@ -108,7 +108,7 @@ class Wallpaper
     // in : nothing
     // out : random name for image
     // ...
-    private function generateNewName() 
+    protected function generateNewName() 
     {
         return (substr(md5(microtime()),rand(0,26),5));
     }
@@ -147,16 +147,6 @@ class Wallpaper
         } else return $url;
     }
 
-    public function setJsonUrl($jsonUrl) 
-    {
-        $this->config->jsonUrl = $this->checkValidJsonUrl($jsonUrl);
-    }
-
-    public function getJsonUrl() 
-    {
-        return $this->config->jsonUrl;
-    }
-
     public function countNewImages() 
     {
         if(! empty($this->config->jsonUrl)){
@@ -165,20 +155,6 @@ class Wallpaper
             return count($urls);
         }
     }
-
-    // uses methods of class to download images with the given url
-    public function run($config, $force = false) 
-    {
-        if(! empty($this->config->jsonUrl)){
-            $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
-            if(!$force)
-                $urls = $this->checkUrlsInHistory($urls);
-            $this->download_images_from_array($config->paths->downloads,$urls);
-        } else {
-            $this->logger->error("Invalid json link...\n");
-        }
-    }
-
 }
 
 ?>
