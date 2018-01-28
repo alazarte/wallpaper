@@ -1,0 +1,45 @@
+{
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "properties": {
+    "wallpaper": {
+      "$id": "/properties/wallpaper",
+      "type": "object",
+      "properties": {
+        "downloadsPath": {
+          "$id": "/properties/wallpaper/properties/downloadPath",
+          "type": "string",
+          "title": "The Downloadpath Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "/home/ale/tmp"
+          ]
+        },
+        "defaultUrl": {
+          "$id": "/properties/wallpaper/properties/defaultUrl",
+          "type": "string",
+          "title": "The Defaulturl Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "www.reddit.com/r/wallpapers.json"
+          ]
+        },
+        "historyFilepath": {
+          "$id": "/properties/wallpaper/properties/defaultUrl",
+          "type": "string",
+          "title": "The historyFilepath Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "www.reddit.com/r/wallpapers.json"
+          ]
+        }
+      },
+        "required": ["defaultUrl","downloadsPath","historyFilepath"]
+    }
+  }
+}

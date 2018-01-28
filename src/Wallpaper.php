@@ -8,7 +8,8 @@ class Wallpaper
 {
     protected $config;
 
-    public function __construct($config) {
+    public function __construct($config) 
+    {
         $this->config = $config;
         $this->logger = new Logger();
 
@@ -30,30 +31,33 @@ class Wallpaper
     // in : array with urls to download images from
     // out : urls that aren't already in history
     // avoid downloading same image
-    protected function removeUrlsAlreadyInHistory($urlArray) {
+    protected function removeUrlsAlreadyInHistory($urlArray) 
+    {
         if(! file_exists($this->config->historyFilepath)) {
-            return $urls_array;
+            $this->logger->debug("History file does not exists");
+            return $urlArray;
         }
         $handle = fopen($this->config->historyFilepath,'r');
-        $history_array = explode(",",fgets($handle));
-        $result_array = array();
+        $urlsHistory = explode(",",fgets($handle));
+        $resultArray = array();
 
         foreach($urlArray as $url) {
-            if(! in_array($url,$history_array)) {
-                array_push($result_array,$url);
+            if(! in_array($url,$urlsHistory)) {
+                array_push($resultArray,$url);
             } else {
                 $this->logger->warning($url." already in history...");
             }
         }
 
         fclose($handle);
-        return $result_array;
+        return $resultArray;
     }
 
     // in : array of urls to add to history
     // out : nothing
     // adds each url in array to history for avoiding re-download same img
-    private function addArrayToHistory($url_array) {
+    private function addArrayToHistory($url_array) 
+    {
         $handle = fopen($this->config->historyFilepath,'a+');
         foreach($url_array as $url) {
             fwrite($handle, $url.",");
@@ -61,7 +65,8 @@ class Wallpaper
         fclose($handle);
     }
 
-    protected function getJsonFromUrl($url) {
+    protected function getJsonFromUrl($url) 
+    {
         $jsonFile = file_get_contents($url);
         $json = json_decode($jsonFile);
         return $json;
@@ -70,7 +75,8 @@ class Wallpaper
     // in : url to json file
     // out : array with urls of images found
     // try to scan page to find images, is best to specify limit in the url
-    public function getImageLinksFromUrl() {
+    public function getImageLinksFromUrl() 
+    {
         if(empty($this->customJsonUrl)) {
             $url = $this->config->defaultUrl;
         }
@@ -90,49 +96,65 @@ class Wallpaper
     // in : string to url
     // out : boolean if valid url
     // validation consist in trying to check if it is an url to an image
-    private function checkValidUrl($url) {
+    private function checkValidUrl($url) 
+    {
         return (preg_match('/.*\.(jpg|jpeg|png)$/',$url)===1);
     }
 
     // in : nothing
     // out : random name for image
     // ...
-    private function generateNewName() {
+    private function generateNewName() 
+    {
         return (substr(md5(microtime()),rand(0,26),5));
     }
 
     // in : url containing an image
     // out : should be boolean if success downloading
     // downloads an image to a random name in local script path
-    public function downloadImageFromUrl($url) {
+    public function downloadImageFromUrl($url) 
+    {
         $output_name = $this->generateNewName();
         $this->logger->notice("Downloading from ".$url." as ".$output_name."...");
         file_put_contents($this->config->downloadsPath.DIRECTORY_SEPARATOR.$output_name,file_get_contents($url));
     }
 
-    public function downloadImagesFromUrlArray($urls) {
-        $this->removeUrlsAlreadyInHistory($url);
-        foreach($urls as $url) {
-                $this->downloadImageFromUrl($url);
+    protected function processUrls($urls)
+    {
+        if(! $this->ignoreHistory) {
+            $processedUrls = $this->removeUrlsAlreadyInHistory($urls);
         }
-        $this->addArrayToHistory($urls);
+        return $processedUrls;
     }
 
-    public function checkValidJsonUrl($url){
+    public function downloadImagesFromUrlArray($urls) 
+    {
+        $processedUrls = $this->processUrls($urls);
+        foreach($processedUrls as $url) {
+                $this->downloadImageFromUrl($url);
+        }
+        $this->addArrayToHistory($processedUrls);
+    }
+
+    public function checkValidJsonUrl($url)
+    {
         if(! preg_match('/^http\:\/\/www\./',$url)) {
             return "http://www." . $url;
         } else return $url;
     }
 
-    public function setJsonUrl($jsonUrl) {
+    public function setJsonUrl($jsonUrl) 
+    {
         $this->config->jsonUrl = $this->checkValidJsonUrl($jsonUrl);
     }
 
-    public function getJsonUrl() {
+    public function getJsonUrl() 
+    {
         return $this->config->jsonUrl;
     }
 
-    public function countNewImages() {
+    public function countNewImages() 
+    {
         if(! empty($this->config->jsonUrl)){
             $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
             $urls = $this->checkUrlsInHistory($urls);
@@ -141,7 +163,8 @@ class Wallpaper
     }
 
     // uses methods of class to download images with the given url
-    public function run($config, $force = false) {
+    public function run($config, $force = false) 
+    {
         if(! empty($this->config->jsonUrl)){
             $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
             if(!$force)

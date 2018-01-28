@@ -1,0 +1,8 @@
+{
+    "require": {
+        "justinrainbow/json-schema": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {"Wallpaper\\": "src/"}
+    }
+}
