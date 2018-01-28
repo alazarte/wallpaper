@@ -12,6 +12,7 @@ class Logger
         $this->tags["warning"] = "WARNING";
         $this->tags["notice"] = "NOTICE";
         $this->tags["debug"] = "DEBUG";
+        $this->tags["info"] = "INFO";
     }
 
     protected function validateMessage($msg)
@@ -22,9 +23,9 @@ class Logger
     protected function printMessage($tag,$msg)
     {
         if($this->validateMessage($msg)) {
-            echo PHP_EOL . "[$tag] $msg" . PHP_EOL ;
+            echo "[$tag] $msg" . PHP_EOL ;
         } else {
-            echo PHP_EOL . " Error parsing message " . PHP_EOL;
+            echo "Error parsing message " . PHP_EOL;
         }
     }
 
@@ -43,6 +44,10 @@ class Logger
     public function debug($msg)
     {
         $this->printMessage($this->tags["debug"],$msg);
+    }
+    public function info($msg)
+    {
+        $this->printMessage($this->tags["info"],$msg);
     }
 }
 

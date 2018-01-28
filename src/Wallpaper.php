@@ -7,12 +7,16 @@ require __DIR__ . '/../vendor/autoload.php';
 class Wallpaper
 {
     protected $config;
+    protected $logger;
+    protected $ignoreHistory;
+    protected $customJsonUrl;
 
     public function __construct($config) 
     {
         $this->config = $config;
         $this->logger = new Logger();
-
+        $this->ignoreHistory = false;
+        $this->customJsonUrl = "";
     }
 
     protected function checkValidConfig()
@@ -131,7 +135,7 @@ class Wallpaper
     {
         $processedUrls = $this->processUrls($urls);
         foreach($processedUrls as $url) {
-                $this->downloadImageFromUrl($url);
+            $this->downloadImageFromUrl($url);
         }
         $this->addArrayToHistory($processedUrls);
     }
