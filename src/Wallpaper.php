@@ -1,35 +1,48 @@
 <?php
-class Wallpaper {
 
-    private $history_filename;
-    private $json_url;
-    private $verbose_mode;
-//    private $mode_history_file = "csv"; // means separated by comma
+namespace Wallpaper;
 
-    function __construct() {
-        $this->history_filename = __DIR__ . "/Whistory";
-        $this->json_url = "";
-        $this->verbose_mode = false;
+require __DIR__ . '/../vendor/autoload.php';
+
+class Wallpaper
+{
+    protected $config;
+
+    public function __construct($config) {
+        $this->config = $config;
+        $this->logger = new Logger();
+
     }
 
-    public function set_verbose_mode($mode) {
-        $this->verbose_mode = $mode;
+    protected function checkValidConfig()
+    {
+        if(! $this->checkValidJsonUrl($this->config->defaultUrl)) {
+            $this->logger->error("Default json url is not valid");
+        }
+        if(is_dir($this->config->downloadsFolder)) {
+            $this->config->error("Downloads folder does not exists");
+        }
+        if(is_dir($this->config->historyFile)) {
+            $this->config->error("History file does not exists");
+        }
     }
 
     // in : array with urls to download images from
     // out : urls that aren't already in history
     // avoid downloading same image
-    public function check_urls_in_history($urls_array) {
-        $handle = fopen($this->history_filename,'r');
+    protected function removeUrlsAlreadyInHistory($urlArray) {
+        if(! file_exists($this->config->historyFilepath)) {
+            return $urls_array;
+        }
+        $handle = fopen($this->config->historyFilepath,'r');
         $history_array = explode(",",fgets($handle));
         $result_array = array();
 
-        foreach($urls_array as $url) {
+        foreach($urlArray as $url) {
             if(! in_array($url,$history_array)) {
                 array_push($result_array,$url);
             } else {
-                if($this->verbose_mode)
-                    print($url." already in history...\n");
+                $this->logger->warning($url." already in history...");
             }
         }
 
@@ -40,97 +53,105 @@ class Wallpaper {
     // in : array of urls to add to history
     // out : nothing
     // adds each url in array to history for avoiding re-download same img
-    private function add_array_to_history($url_array) {
-        $handle = fopen($this->history_filename,'a+');
+    private function addArrayToHistory($url_array) {
+        $handle = fopen($this->config->historyFilepath,'a+');
         foreach($url_array as $url) {
             fwrite($handle, $url.",");
         }
         fclose($handle);
     }
 
+    protected function getJsonFromUrl($url) {
+        $jsonFile = file_get_contents($url);
+        $json = json_decode($jsonFile);
+        return $json;
+    }
+
     // in : url to json file
     // out : array with urls of images found
     // try to scan page to find images, is best to specify limit in the url
-    public function get_array_from_url() {
-        if(! empty($this->json_url)) {
-            $json_file = file_get_contents($this->json_url);
-            $json = json_decode($json_file,true);
-            $urls_array = array();
-            foreach($json["data"]["children"] as $children){
-                if(isset($children["data"]["url"])) {
-                    $source_url = $children["data"]["url"];
-                    if($this->check_valid_url($source_url)) {
-                        array_push($urls_array,$source_url);
-                    }
+    public function getImageLinksFromUrl() {
+        if(empty($this->customJsonUrl)) {
+            $url = $this->config->defaultUrl;
+        }
+        $json = $this->getJsonFromUrl($url);
+        $urlsArray = array();
+        foreach($json->data->children as $children){
+            if(isset($children->data->url)) {
+                $sourceUrl = $children->data->url;
+                if($this->checkValidUrl($sourceUrl)) {
+                    array_push($urlsArray,$sourceUrl);
                 }
             }
-            return $urls_array;
-        } else return false;
+        }
+        return $urlsArray;
     }
 
     // in : string to url
     // out : boolean if valid url
     // validation consist in trying to check if it is an url to an image
-    private function check_valid_url($url) {
+    private function checkValidUrl($url) {
         return (preg_match('/.*\.(jpg|jpeg|png)$/',$url)===1);
     }
 
     // in : nothing
     // out : random name for image
     // ...
-    private function generate_new_name() {
-        return (substr(md5(microtime()),rand(0,26),5) . ".jpg");
+    private function generateNewName() {
+        return (substr(md5(microtime()),rand(0,26),5));
     }
 
     // in : url containing an image
     // out : should be boolean if success downloading
     // downloads an image to a random name in local script path
-    public function download_image_from_url($url) {
-        $output_name = $this->generate_new_name();
-        if($this->verbose_mode)
-            print("Downloading from ".$url." as ".$output_name."...\n");
-        file_put_contents($output_name,file_get_contents($url));
+    public function downloadImageFromUrl($url) {
+        $output_name = $this->generateNewName();
+        $this->logger->notice("Downloading from ".$url." as ".$output_name."...");
+        file_put_contents($this->config->downloadsPath.DIRECTORY_SEPARATOR.$output_name,file_get_contents($url));
     }
 
-    public function download_images_from_array($urls) {
+    public function downloadImagesFromUrlArray($urls) {
+        $this->removeUrlsAlreadyInHistory($url);
         foreach($urls as $url) {
-            $this->download_image_from_url($url);
+                $this->downloadImageFromUrl($url);
         }
-        $this->add_array_to_history($urls);
+        $this->addArrayToHistory($urls);
     }
 
-    public function check_valid_json_url($url){
+    public function checkValidJsonUrl($url){
         if(! preg_match('/^http\:\/\/www\./',$url)) {
             return "http://www." . $url;
         } else return $url;
     }
 
-    public function set_json_url($json_url) {
-        $this->json_url = $this->check_valid_json_url($json_url);
-    }
-    public function get_json_url() {
-        return $this->json_url;
+    public function setJsonUrl($jsonUrl) {
+        $this->config->jsonUrl = $this->checkValidJsonUrl($jsonUrl);
     }
 
-    public function count_new_images() {
-        if(! empty($this->json_url)){
-            $urls = $this->get_array_from_url($this->json_url);
-            $urls = $this->check_urls_in_history($urls);
+    public function getJsonUrl() {
+        return $this->config->jsonUrl;
+    }
+
+    public function countNewImages() {
+        if(! empty($this->config->jsonUrl)){
+            $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
+            $urls = $this->checkUrlsInHistory($urls);
             return count($urls);
         }
     }
 
     // uses methods of class to download images with the given url
-    public function run($force = false) {
-        if(! empty($this->json_url)){
-            $urls = $this->get_array_from_url($this->json_url);
+    public function run($config, $force = false) {
+        if(! empty($this->config->jsonUrl)){
+            $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
             if(!$force)
-                $urls = $this->check_urls_in_history($urls);
-            $this->download_images_from_array($urls);
+                $urls = $this->checkUrlsInHistory($urls);
+            $this->download_images_from_array($config->paths->downloads,$urls);
         } else {
-            print("Invalid json link...\n");
+            $this->logger->error("Invalid json link...\n");
         }
     }
+
 }
 
 ?>

@@ -1,30 +1,15 @@
 <?php
 
-class Logger
-{
-    $errorTag = "ERROR";
+namespace Wallpaper;
 
-    protected function validateMessage($msg)
-    {
-        return true;
-    }
-
-    public function error($msg)
-    {
-        if($this->validate($msg)) {
-            echo PHP_EOL . "[$this->errorTag] $msg" . PHP_EOL ;
-        } else {
-            echo PHP_EOL . " Error parsing message " . PHP_EOL;
-        }
-    }
-}
+require __DIR__ . '/../vendor/autoload.php';
 
 class Json
 {
-    public static function getContents($filepath)
+    public static function decode($filepath)
     {
         $handler = fopen($filepath,"r");
-        $contents = fread($handler,filesize());
+        $contents = fread($handler,filesize($filepath));
         fclose($handler);
 
         $jsonContents = json_decode($contents);
@@ -34,32 +19,49 @@ class Json
 
 class Config
 {
-    protected $schema;
-    protected $config;
+    protected $schemaFilepath;
+    protected $configFilepath;
+    protected $logger;
+    protected $validatorErrors;
+    protected $schemaObject;
+    protected $configObject;
 
     public function __construct($configFilepath, $schemaFilepath)
     {
         $this->schemaFilepath = $schemaFilepath;
         $this->configFilepath = $configFilepath;
+        $this->schemaObject = Json::decode($this->schemaFilepath);
+        $this->configObject = Json::decode($this->configFilepath);
+
         $this->logger = new Logger();
+        $this->validatorErrors = array();
     }
 
     protected function validateConfig()
     {
-        $validator = new SchemaStorage();
-        $jsonContents = Json::getContents($configFilepath, true);
-        $validator->validate($jsonContents,$this->schemaFilepath);
-        if($validator->isValid()) {
+        $schemaStorage = new \JsonSchema\SchemaStorage();
+        $schemaStorage->addSchema('file://wallpaper.schema.json',$this->schemaObject);
+        $jsonValidator = new \JsonSchema\Validator(new \JsonSchema\Constraints\Factory($schemaStorage));
+        $jsonValidator->validate($this->configObject, $this->schemaObject);
+
+        if($jsonValidator->isValid()) {
             return true;
         } else {
-            $this->validatorErrors = $validator->getErrors();
+            $this->validatorErrors = $jsonValidator->getErrors();
             return false;
         }
     }
     public function getConfig()
     {
-        $this->validateConfig();
-        return $this->config;
+        if($this->validateConfig()) {
+            return $this->configObject;
+        } else {
+            return null;
+        }
+    }
+    public function getErrors()
+    {
+        return $this->validatorErrors;
     }
 }
 
