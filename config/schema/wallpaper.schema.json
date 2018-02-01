@@ -11,19 +11,13 @@
         "downloadsPath": {
           "$id": "/properties/wallpaper/properties/downloadPath",
           "type": "string",
-          "title": "The Downloadpath Schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": "",
           "examples": [
-            "/home/ale/tmp"
+            "/home/USERNAME/tmp"
           ]
         },
         "defaultUrl": {
           "$id": "/properties/wallpaper/properties/defaultUrl",
           "type": "string",
-          "title": "The Defaulturl Schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": "",
           "examples": [
             "www.reddit.com/r/wallpapers.json"
           ]
@@ -31,15 +25,19 @@
         "historyFilepath": {
           "$id": "/properties/wallpaper/properties/defaultUrl",
           "type": "string",
-          "title": "The historyFilepath Schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": "",
           "examples": [
-            "www.reddit.com/r/wallpapers.json"
+            "/tmp/.history"
+          ]
+        },
+        "imagesExtension": {
+          "$id": "/properties/wallpaper/properties/imagesExtension",
+          "type": "string",
+          "examples": [
+            "/tmp/.history"
           ]
         }
       },
-        "required": ["defaultUrl","downloadsPath","historyFilepath"]
+        "required": ["defaultUrl","downloadsPath","historyFilepath","imagesExtension"]
     }
   }
 }

@@ -2,20 +2,9 @@
 
 namespace Wallpaper;
 
-require __DIR__ . '/../vendor/autoload.php';
+use \Wallpaper\Json;
 
-class Json
-{
-    public static function decode($filepath)
-    {
-        $handler = fopen($filepath,"r");
-        $contents = fread($handler,filesize($filepath));
-        fclose($handler);
-
-        $jsonContents = json_decode($contents);
-        return $jsonContents;
-    }
-}
+// require __DIR__ . '/../vendor/autoload.php';
 
 class Config
 {
@@ -30,8 +19,8 @@ class Config
     {
         $this->schemaFilepath = $schemaFilepath;
         $this->configFilepath = $configFilepath;
-        $this->schemaObject = Json::decode($this->schemaFilepath);
-        $this->configObject = Json::decode($this->configFilepath);
+        $this->schemaObject = Json::decodeAsObject($this->schemaFilepath);
+        $this->configObject = Json::decodeAsObject($this->configFilepath);
 
         $this->logger = new Logger();
         $this->validatorErrors = array();

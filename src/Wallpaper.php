@@ -2,10 +2,12 @@
 
 namespace Wallpaper;
 
-require __DIR__ . '/../vendor/autoload.php';
+// require __DIR__ . '/../vendor/autoload.php';
 
 class Wallpaper
 {
+    const EXTENSION_SEPARATOR = ".";
+
     protected $config;
     protected $logger;
     protected $ignoreHistory;
@@ -32,9 +34,13 @@ class Wallpaper
         }
     }
 
-    // in : array with urls to download images from
-    // out : urls that aren't already in history
-    // avoid downloading same image
+    /**
+     * This method removes url from an array with urls that are found in
+     * the history file
+     *
+     * @param   Array   $urlArray   Array with urls to download images from
+     * @return  Array               Array with urls that are not already in history
+     */
     protected function removeUrlsAlreadyInHistory($urlArray) 
     {
         if(! file_exists($this->config->historyFilepath)) {
@@ -57,9 +63,12 @@ class Wallpaper
         return $resultArray;
     }
 
-    // in : array of urls to add to history
-    // out : nothing
-    // adds each url in array to history for avoiding re-download same img
+    /**
+     * Adds each url in a array to the history file to avoid 
+     * downloading the same image again
+     *
+     * @param   Array   $urlArray   Array with the urls to add to the history file as csv
+     */
     protected function addArrayToHistory($url_array) 
     {
         $handle = fopen($this->config->historyFilepath,'a+');
@@ -76,10 +85,12 @@ class Wallpaper
         return $json;
     }
 
-    // in : url to json file
-    // out : array with urls of images found
-    // try to scan page to find images, is best to specify limit in the url
-    protected function getImageLinksFromUrl() 
+    /**
+     * Try to decode contents as json object and find images in hard-coded path
+     *
+     * @returns     Array   Array with all images found as url
+     */
+    public function getImageLinksFromUrl() 
     {
         if(empty($this->customJsonUrl)) {
             $url = $this->config->defaultUrl;
@@ -97,25 +108,32 @@ class Wallpaper
         return $urlsArray;
     }
 
-    // in : string to url
-    // out : boolean if valid url
-    // validation consist in trying to check if it is an url to an image
+    /**
+     * Simple validaton of a json url
+     *
+     * @param   String  $url    Url to validate
+     * @returns Boolean         True if regex is matched
+     */
     protected function checkValidUrl($url) 
     {
         return (preg_match('/.*\.(jpg|jpeg|png)$/',$url)===1);
     }
 
-    // in : nothing
-    // out : random name for image
-    // ...
+    /**
+     * Generates a 5 letter pseudo-random string to use as the image name
+     *
+     * @returns String      The 5 letter string
+     */
     protected function generateNewName() 
     {
-        return (substr(md5(microtime()),rand(0,26),5));
+        return (substr(md5(microtime()),rand(0,26),5)) .$this::EXTENSION_SEPARATOR. $this->config->imagesExtension;
     }
 
-    // in : url containing an image
-    // out : should be boolean if success downloading
-    // downloads an image to a random name in local script path
+    /**
+     * Download image from url to the path from the config file with a new name
+     *
+     * @param   String  $url    Url that contains the image
+     */
     public function downloadImageFromUrl($url) 
     {
         $output_name = $this->generateNewName();

@@ -1,7 +1,8 @@
 {
-"wallpaper":{
-    "downloadsPath": "/tmp",
-    "defaultUrl": "https://www.reddit.com/r/wallpapers.json",
-    "historyFilepath": "/tmp/history"
-}
+    "wallpaper":{
+        "downloadsPath": "/tmp",
+        "defaultUrl": "https://www.reddit.com/r/wallpapers.json",
+        "historyFilepath": "/tmp/.history",
+        "imagesExtension": "JPEG"
+    }
 }
