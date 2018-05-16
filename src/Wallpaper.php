@@ -164,15 +164,6 @@ class Wallpaper
             return "http://www." . $url;
         } else return $url;
     }
-
-    public function countNewImages() 
-    {
-        if(! empty($this->config->jsonUrl)){
-            $urls = $this->getImageLinksFromUrl($this->config->jsonUrl);
-            $urls = $this->checkUrlsInHistory($urls);
-            return count($urls);
-        }
-    }
 }
 
 ?>

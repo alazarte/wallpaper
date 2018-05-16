@@ -17,7 +17,6 @@ if($config) {
     $wallpaper = new Wallpaper($config->wallpaper);
 
     $images = $wallpaper->getImageLinksFromUrl();
-    $logger->info(count($images) . " new images!");
     $wallpaper->downloadImagesFromUrlArray($images);
 } else {
     print_r($configInstance->getErrors());
